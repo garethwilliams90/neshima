@@ -202,9 +202,11 @@ Do not store a level column as an independently updated value. Compute it from l
 
 ## Information architecture
 
-- Home: choose box breathing or 4-7-8, and show the current level and streak so practice is one step away.
-- Box session: the box controls (before start) and the box guide.
-- 4-7-8 session: the cycle control (before start) and the 4-7-8 guide.
+- Home opens box breathing. Choose the other program from the sidebar.
+- A collapsible program sidebar lists box breathing and 4-7-8. It lives in the breathing layout, so whether it is open, the box settings, and the 4-7-8 cycle count stay as you move between `/breathe/box` and `/breathe/4-7-8`.
+- Hide that sidebar while a session is running. The exercise screen stays free of navigation.
+- Box session: `/breathe/box`. The box controls (before start) and the box guide.
+- 4-7-8 session: `/breathe/4-7-8`. The cycle control (before start) and the 4-7-8 guide.
 - Profile: the progress and activity described above.
 
 Route names may follow Next.js file conventions. Do not add sections for community, shop, library of extra techniques, or settings that change the rules in this file.

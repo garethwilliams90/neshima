@@ -2,61 +2,17 @@
 
 import { useEffect } from "react"
 import { motion, useMotionValue, useReducedMotion } from "motion/react"
-import {
-  BOX_PHASES,
-  type BoxFrame,
-  frameAt,
-  indicatorPoint,
-  sideLine,
-} from "@/lib/box-breathing"
+import type { GuideSlot } from "@/components/breathing/breathing-session"
+import { BOX_PHASES, indicatorPoint, sideLine } from "@/lib/box-breathing"
 
-type BoxGuideProps = {
-  running: boolean
-  breatheLengthSeconds: number
-  cycles: number
-  phaseIndex: number
-  onFrame: (frame: BoxFrame) => void
-  onComplete: () => void
-}
-
-export function BoxGuide({
-  running,
-  breatheLengthSeconds,
-  cycles,
-  phaseIndex,
-  onFrame,
-  onComplete,
-}: BoxGuideProps) {
+export function BoxGuide({ running, phaseIndex, sampleRef }: GuideSlot) {
   const reduceMotion = useReducedMotion()
   const startPoint = indicatorPoint(0, 0)
   const x = useMotionValue(startPoint.x)
   const y = useMotionValue(startPoint.y)
 
   useEffect(() => {
-    if (!running) {
-      const idle = indicatorPoint(0, 0)
-      x.set(idle.x)
-      y.set(idle.y)
-      return
-    }
-
-    const start = performance.now()
-    let frameId = 0
-    let lastKey = ""
-    let finished = false
-    const settings = { breatheLengthSeconds, cycles }
-
-    const tick = (now: number) => {
-      if (finished) return
-
-      const frame = frameAt(now - start, settings)
-
-      if (frame.done) {
-        finished = true
-        onComplete()
-        return
-      }
-
+    sampleRef.current = (frame) => {
       const progress = window.matchMedia("(prefers-reduced-motion: reduce)")
         .matches
         ? 0.5
@@ -64,23 +20,19 @@ export function BoxGuide({
       const point = indicatorPoint(frame.phaseIndex, progress)
       x.set(point.x)
       y.set(point.y)
-
-      const key = `${frame.cycleNumber}:${frame.phaseIndex}:${frame.secondsRemaining}`
-      if (key !== lastKey) {
-        lastKey = key
-        onFrame(frame)
-      }
-
-      frameId = requestAnimationFrame(tick)
     }
-
-    frameId = requestAnimationFrame(tick)
 
     return () => {
-      finished = true
-      cancelAnimationFrame(frameId)
+      sampleRef.current = null
     }
-  }, [running, breatheLengthSeconds, cycles, onFrame, onComplete, x, y])
+  }, [sampleRef, x, y])
+
+  useEffect(() => {
+    if (running) return
+    const idle = indicatorPoint(0, 0)
+    x.set(idle.x)
+    y.set(idle.y)
+  }, [running, x, y])
 
   return (
     <svg
